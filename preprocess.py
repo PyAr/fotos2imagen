@@ -3,14 +3,18 @@
 import argparse
 import pathlib
 
-from PIL import Image  # fades
+from PIL import Image, UnidentifiedImageError  # fades
 
 
 def main(source_dir, sizes_dirs):
     """Main entry point."""
     for path in source_dir.iterdir():
         print("Processing", path)
-        src_image = Image.open(path)
+        try:
+            src_image = Image.open(path)
+        except UnidentifiedImageError:
+            print("    WARNING archivo no identificado")
+            continue
         print("    size:", src_image.size)
 
         print("    squaring")
