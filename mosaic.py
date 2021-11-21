@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from pathlib import Path
 from finder import ImageFinder
-
+from image_progress import image_progress
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -90,12 +90,19 @@ class Mosaiker:
             pickle.dump(fisa, f)
         return fisa
 
-    def do_it(self, randomization_factor=DEFAULT_RANDOMIZATION_FACTOR, blend_factor=0):
+    def do_it(self, randomization_factor=DEFAULT_RANDOMIZATION_FACTOR, blend_factor=0, show_progress_window=False):
         """just do it"""
 
         #import ipdb; ipdb.set_trace()
         try:
-            for chunk_row in tqdm(list(range(self.height_in_chunks))):
+            images = image_progress(
+                base_image=self.out_fname,
+                width=self.width,
+                height=self.height,
+                show_progress_window=show_progress_window,
+                iterable=list(range(self.height_in_chunks))
+            )
+            for chunk_row in images:
                 #print(f"Chunk Fila {chunk_row}")
                 for chunk_col in range(self.width_in_chunks):
                     #print(f"Chunk Columna {chunk_col}")

@@ -55,7 +55,14 @@ ROOT_DATA_DIR = "./downloads/processed/birds"
     default=None,
     help="Path to a pickled model file."
 )
-def main(source_image, output_fname, chunk_size, tile_size, randomization, blend, force, images_root_dir, model_file):
+@click.option(
+    "-w",
+    "--show-progress-window",
+    default=False,
+    is_flag=True,
+    help="Show a window with progress"
+)
+def main(source_image, output_fname, chunk_size, tile_size, randomization, blend, force, images_root_dir, model_file, show_progress_window):
     """Recreate the given source image with a mosaic of other images."""
 
     if os.path.exists(output_fname) and not force:
