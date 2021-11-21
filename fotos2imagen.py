@@ -69,8 +69,8 @@ def main(source_image, output_fname, chunk_size, tile_size, randomization, blend
         print("⚠️  El output ya existe! Para sobreescribir, usar la opción --force")
         return
 
-    mosaiker = Mosaiker(source_image, chunk_size, tile_size, output_fname, images_root_dir, model_file)
-    mosaiker.do_it(randomization_factor=randomization, blend_factor=blend)
+    mosaiker = Mosaiker(source_image, chunk_size, tile_size, output_fname, images_root_dir, model_file, )
+    mosaiker.do_it(randomization_factor=randomization, blend_factor=blend, show_progress_window=show_progress_window)
 
 
 if __name__ == "__main__":

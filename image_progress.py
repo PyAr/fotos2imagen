@@ -59,13 +59,6 @@ class image_progress_tdqm(tqdm):
         
         if self._with_window:
             self.app.update_image()
-    
-    # def close(self):
-    #     super().close()
-        
-    #     if self._with_window:
-    #         self.app.close()
-
 
 image_progress = image_progress_tdqm
 
