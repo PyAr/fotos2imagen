@@ -5,7 +5,7 @@ import pickle
 
 import numpy as np
 
-from PIL import Image, ImageStat, ImageChops
+from PIL import Image, ImageStat, ImageChops, ImageOps
 from tqdm import tqdm
 
 from pathlib import Path
@@ -135,8 +135,9 @@ class Mosaiker:
         # per_channel_diff = chunk_per_channel_mean - tile_per_channel_mean
 
         # change_factor = per_channel_diff * 0.1
-        return ImageChops.blend(target_image, Image.fromarray(chunk), blend_factor)
-
-
-
+        fitted_chunk = ImageOps.fit(
+            Image.fromarray(chunk),
+            target_image.size
+        )
+        return ImageChops.blend(target_image, fitted_chunk, blend_factor)
 
