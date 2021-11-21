@@ -54,6 +54,7 @@ class Mosaiker:
         self.n_chunks = n_chunks
         self.tile_size = tile_size
         self.out_fname = out_fname
+        self.images_root_dir = images_root_dir
         
         self.fisa = self._load_a_fisa(model_file=model_file)
 
@@ -68,22 +69,24 @@ class Mosaiker:
             # Use the provided file, blindly
             with open(model_file, "rb") as f:
                 return pickle.load(f)
-
+        
         target_fisa = DEFAULT_FISA_TEMPLATE.format(chunk_size=self.chunk_size)
-        if os.path.exists(target_fisa):
+        fisa_file_path = os.path.join(self.images_root_dir, target_fisa)
+        if os.path.exists(fisa_file_path):
             # Look for an existing model in the default location
             print(f"Found a Fisa for chunks size {self.chunk_size}! Let's use it...")
-            with open(target_fisa, "rb") as f:
+            with open(fisa_file_path, "rb") as f:
                 return pickle.load(f)
 
         # Let's just initialize a new Fisa and save it for reuse
+        print(f"🔎  No Fisa in sight for chunks size {self.chunk_size}! Let's summon one...")
         fisa = ImageFinder(
             images_path=Path(self.images_for_comparison), 
             window_height=self.chunk_size, 
             window_width=self.chunk_size,
         )
         fisa.prepare()
-        with open(target_fisa, "wb") as f:
+        with open(fisa_file_path, "wb") as f:
             pickle.dump(fisa, f)
         return fisa
 

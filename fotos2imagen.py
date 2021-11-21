@@ -1,9 +1,10 @@
 import click
+import os
 
 from mosaic import Mosaiker
 
-ROOT_DATA_DIR = "./downloads/processed/"
-DEFAULT_FISA_TEMPLATE = "fisa-{chunk_size}.pkl"
+
+ROOT_DATA_DIR = "./downloads/processed/birds"
 
 
 @click.command(name="mosaic")
@@ -37,6 +38,13 @@ DEFAULT_FISA_TEMPLATE = "fisa-{chunk_size}.pkl"
     help="Tiles post-processing factor. 0 does nothing, 0.99 results in the original image."
 )
 @click.option(
+    "-f",
+    "--force", 
+    default=False,
+    is_flag=True,
+    help="Tiles post-processing factor. 0 does nothing, 0.99 results in the original image."
+)
+@click.option(
     "--images-root-dir", 
     default=ROOT_DATA_DIR,
     help="Directory with the preprocessed data."
@@ -47,8 +55,12 @@ DEFAULT_FISA_TEMPLATE = "fisa-{chunk_size}.pkl"
     default=None,
     help="Path to a pickled model file."
 )
-def main(source_image, output_fname, chunk_size, tile_size, randomization, blend, images_root_dir, model_file):
+def main(source_image, output_fname, chunk_size, tile_size, randomization, blend, force, images_root_dir, model_file):
     """Recreate the given source image with a mosaic of other images."""
+
+    if os.path.exists(output_fname) and not force:
+        print("⚠️  El output ya existe! Para sobreescribir, usar la opción --force")
+        return
 
     mosaiker = Mosaiker(source_image, chunk_size, tile_size, output_fname, images_root_dir, model_file)
     mosaiker.do_it(randomization_factor=randomization, blend_factor=blend)
