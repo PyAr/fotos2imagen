@@ -61,10 +61,10 @@ class Mosaiker:
         self._mosaic = Image.new("RGB", (mosaic_width, mosaic_height), (255, 255, 255))
 
     def _load_a_fisa(self):
-        # if os.path.exists(DEFAULT_FISA_FNAME):
-        #     print("Found a Fisa! Let's use it...")
-        #     f = open(DEFAULT_FISA_FNAME, "rb").read()
-        #     return pickle.load(f)
+        if os.path.exists(DEFAULT_FISA_FNAME):
+            print("Found a Fisa! Let's use it...")
+            with open(DEFAULT_FISA_FNAME, "rb") as f:
+                return pickle.load(f)
 
         fisa = ImageFinder(
             images_path=Path(self.images_for_comparison), 
@@ -73,7 +73,8 @@ class Mosaiker:
         )
         # only once
         fisa.prepare()
-        pickle.dump(fisa, open(DEFAULT_FISA_FNAME, "wb"))
+        with open(DEFAULT_FISA_FNAME, "wb") as f:
+            pickle.dump(fisa, f)
         return fisa
 
     def do_it(self):
