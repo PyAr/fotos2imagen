@@ -6,15 +6,12 @@ import numpy as np
 
 from PIL import Image
 
+from pathlib import Path
+from finder import ImageFinder
 
-class Fisa:
-    def prepare(self, images_for_comparison):
-        return self
 
-    def select_candidate_image(self, x):
-        
-        return random.choice(["x.jpg","facu200.jpg"])
 
+ROOT_DATA_DIR = "./downloads/processed/"
 
 
 if __name__ == "__main__":
@@ -23,10 +20,16 @@ if __name__ == "__main__":
     tile_size = int(sys.argv[3])
     out_fname = sys.argv[4]
 
-    images_for_comparison = f"data/{chunk_size}x{chunk_size}/"  # Se deriva de chunk_size
-    target_images_directory = f"data/{tile_size}x{tile_size}/"  # Se deriva de tile_size
+    images_for_comparison = os.path.join(ROOT_DATA_DIR, f"{chunk_size}x{chunk_size}/")  # Se deriva de chunk_size
+    target_images_directory = os.path.join(ROOT_DATA_DIR, f"{tile_size}x{tile_size}/")  # Se deriva de tile_size
 
-    fisa = Fisa().prepare(images_for_comparison)
+    fisa = ImageFinder(
+        images_path=Path(images_for_comparison), 
+        window_height=chunk_size, 
+        window_width=chunk_size,
+    )
+    # only once
+    fisa.prepare()
 
     # Corto la imagen original para que entren chunks justos
     width, height = source_image.size
@@ -58,7 +61,7 @@ if __name__ == "__main__":
 
             chunk = useful_region[col_ini: col_ini + chunk_size, row_ini: row_ini + chunk_size]
             print(chunk.shape)
-            filename = fisa.select_candidate_image(chunk)  # Fisa's
+            filename = fisa.find_best_fit(chunk)  # Fisa's
             target_image_fname = os.path.join(target_images_directory, filename)
             target_image = Image.open(target_image_fname)
             
