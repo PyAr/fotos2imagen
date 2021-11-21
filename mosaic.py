@@ -5,7 +5,7 @@ import pickle
 
 import numpy as np
 
-from PIL import Image
+from PIL import Image, ImageStat, ImageChops
 from tqdm import tqdm
 
 from pathlib import Path
@@ -87,7 +87,7 @@ class Mosaiker:
             pickle.dump(fisa, f)
         return fisa
 
-    def do_it(self, randomization_factor=DEFAULT_RANDOMIZATION_FACTOR):
+    def do_it(self, randomization_factor=DEFAULT_RANDOMIZATION_FACTOR, blend_factor=0):
         """just do it"""
 
         #import ipdb; ipdb.set_trace()
@@ -98,7 +98,10 @@ class Mosaiker:
                     #print(f"Chunk Columna {chunk_col}")
                     chunk = self._extract_chunk(chunk_col, chunk_row)
                     filename = self.fisa.find(chunk, randomization_factor=randomization_factor)  # Fisa's
-                    self._put_single_tile_in_mosaic(chunk_col, chunk_row, filename)
+                    target_image_fname = os.path.join(self.target_images_directory, filename)
+                    target_image = Image.open(target_image_fname)
+                    tile = self._build_tile(chunk, target_image, blend_factor=blend_factor)
+                    self._put_single_tile_in_mosaic(chunk_col, chunk_row, tile)
         except ValueError as e:
             logger.exception(e)
             print("Falló. A llorar al campito 😭")
@@ -115,12 +118,25 @@ class Mosaiker:
         chunk = self.useful_region.crop(box)
         return np.array(chunk)
 
-    def _put_single_tile_in_mosaic(self, chunk_col, chunk_row, filename):
-        target_image_fname = os.path.join(self.target_images_directory, filename)
-        target_image = Image.open(target_image_fname)
+    def _put_single_tile_in_mosaic(self, chunk_col, chunk_row, target_image):
         start_col = chunk_col * self.tile_size
         start_row = chunk_row * self.tile_size
         tile_upper_left_coords = (start_col, start_row)
-        #print("Tile box: " + str(tile_upper_left_coords))
         self._mosaic.paste(target_image, tile_upper_left_coords)
         self._mosaic.save(self.out_fname)
+
+    def _build_tile(self, chunk, target_image, blend_factor):
+        # import ipdb; ipdb.set_trace()
+        
+        # chunk_per_channel_mean = np.mean(chunk, axis=tuple(range(chunk.ndim-1)))
+
+        # tile_per_channel_mean = ImageStat.Stat(target_image).mean
+
+        # per_channel_diff = chunk_per_channel_mean - tile_per_channel_mean
+
+        # change_factor = per_channel_diff * 0.1
+        return ImageChops.blend(target_image, Image.fromarray(chunk), blend_factor)
+
+
+
+
