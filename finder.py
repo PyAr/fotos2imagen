@@ -2,6 +2,10 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from tqdm import tqdm
 from PIL import Image
+import random
+
+
+DEFAULT_NEIGHBOURS = 5
 
 
 class ImageFinder:
@@ -49,12 +53,14 @@ class ImageFinder:
         self.classifier = KNeighborsClassifier(n_neighbors=1)
         self.classifier.fit(self.dataset, range(len(self.dataset)))
 
-    def find_best_fit(self, window):
+    def find(self, window, randomization_factor=DEFAULT_NEIGHBOURS):
         """
         Find the most similar image from the dataset, compared to a window.
         Return the path to the found image.
+        randomization_factor is a number >= 1
+        
         """
         inputs = np.array([window.flatten(), ])
-        predictions = self.classifier.predict(inputs)
-        best_fit_index = predictions[0]
+        neighbours = self.classifier.kneighbors(inputs, n_neighbors=randomization_factor, return_distance=False)
+        best_fit_index = random.choice(neighbours[0])
         return self.index_to_path[best_fit_index].name
