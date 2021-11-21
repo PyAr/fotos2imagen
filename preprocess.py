@@ -1,9 +1,7 @@
-#!/usr/bin/fades
-
 import argparse
 import pathlib
 
-from PIL import Image, UnidentifiedImageError  # fades
+from PIL import Image, UnidentifiedImageError
 
 
 def main(source_dir, sizes_dirs):
