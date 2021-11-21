@@ -17,23 +17,17 @@ logger = logging.getLogger(__name__)
 
 
 
-ROOT_DATA_DIR = "./downloads/processed/"
 DEFAULT_FISA_TEMPLATE = "fisa-{chunk_size}.pkl"
+DEFAULT_RANDOMIZATION_FACTOR = 1
 
-
-def extract_chuk(chunk_col, chunk_row, chunk_size):
-    # Chunk ini coords
-    col_ini = chunk_col * chunk_size
-    row_ini = chunk_row * chunk_size
-    #print(f"Chunk {chunk_col}, {chunk_row}: ({col_ini}, {row_ini})"
-    chunk = useful_region[col_ini: col_ini + chunk_size, row_ini: row_ini + chunk_size]
-    return chunk
 
 class Mosaiker:
-    def __init__(self, source_image, chunk_size, tile_size, out_fname) -> None:
+    def __init__(self, source_image_path, chunk_size, tile_size, out_fname, images_root_dir, model_file=None) -> None:
 
-        self.images_for_comparison = os.path.join(ROOT_DATA_DIR, f"{chunk_size}x{chunk_size}/")  # Se deriva de chunk_size
-        self.target_images_directory = os.path.join(ROOT_DATA_DIR, f"{tile_size}x{tile_size}/")  # Se deriva de tile_size
+        source_image = Image.open(source_image_path)
+
+        self.images_for_comparison = os.path.join(images_root_dir, f"{chunk_size}x{chunk_size}/")  # Se deriva de chunk_size
+        self.target_images_directory = os.path.join(images_root_dir, f"{tile_size}x{tile_size}/")  # Se deriva de tile_size
 
         # Corto la imagen original para que entren chunks justos
         width, height = source_image.size
@@ -59,32 +53,41 @@ class Mosaiker:
         self.height_in_chunks = height_in_chunks
         self.n_chunks = n_chunks
         self.tile_size = tile_size
+        self.out_fname = out_fname
         
-        self.fisa = self._load_a_fisa()
+        self.fisa = self._load_a_fisa(model_file=model_file)
 
         mosaic_width = tile_size * width_in_chunks
         mosaic_height = tile_size * height_in_chunks
         self._mosaic = Image.new("RGB", (mosaic_width, mosaic_height), (255, 255, 255))
 
-    def _load_a_fisa(self):
+    def _load_a_fisa(self, model_file=None):
+        """"""
+
+        if model_file:
+            # Use the provided file, blindly
+            with open(model_file, "rb") as f:
+                return pickle.load(f)
+
         target_fisa = DEFAULT_FISA_TEMPLATE.format(chunk_size=self.chunk_size)
         if os.path.exists(target_fisa):
+            # Look for an existing model in the default location
             print(f"Found a Fisa for chunks size {self.chunk_size}! Let's use it...")
             with open(target_fisa, "rb") as f:
                 return pickle.load(f)
 
+        # Let's just initialize a new Fisa and save it for reuse
         fisa = ImageFinder(
             images_path=Path(self.images_for_comparison), 
             window_height=self.chunk_size, 
             window_width=self.chunk_size,
         )
-        # only once
         fisa.prepare()
         with open(target_fisa, "wb") as f:
             pickle.dump(fisa, f)
         return fisa
 
-    def do_it(self):
+    def do_it(self, randomization_factor=DEFAULT_RANDOMIZATION_FACTOR):
         """just do it"""
 
         #import ipdb; ipdb.set_trace()
@@ -94,7 +97,7 @@ class Mosaiker:
                 for chunk_col in range(self.width_in_chunks):
                     #print(f"Chunk Columna {chunk_col}")
                     chunk = self._extract_chunk(chunk_col, chunk_row)
-                    filename = self.fisa.find_best_fit(chunk)  # Fisa's
+                    filename = self.fisa.find(chunk, randomization_factor=randomization_factor)  # Fisa's
                     self._put_single_tile_in_mosaic(chunk_col, chunk_row, filename)
         except ValueError as e:
             logger.exception(e)
@@ -120,14 +123,4 @@ class Mosaiker:
         tile_upper_left_coords = (start_col, start_row)
         #print("Tile box: " + str(tile_upper_left_coords))
         self._mosaic.paste(target_image, tile_upper_left_coords)
-        self._mosaic.save(out_fname)
-
-
-if __name__ == "__main__":
-    source_image = Image.open(sys.argv[1])
-    chunk_size_arg = int(sys.argv[2])
-    tile_size_arg = int(sys.argv[3])
-    out_fname = sys.argv[4]
-
-    mosaiker = Mosaiker(source_image, chunk_size_arg, tile_size_arg, out_fname)
-    mosaiker.do_it()
+        self._mosaic.save(self.out_fname)
