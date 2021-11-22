@@ -46,3 +46,13 @@ python fotos2imagen.py imagenOriginal.jpg output.jpg \
   --images-root-dir downloads/processed \
   --show-progress-window
 ```
+
+## Distribution
+
+Using PyEmpaq >= 0.2.3 you can empaq this awsome lib and share to every OS ever known
+```bash
+pyempaq .
+```
+
+Until PyEmpaq allow it, make shure to remove every single file or directory that you want to omit. `venv`, `*.jpg`, `*.pkl`, and so on
+

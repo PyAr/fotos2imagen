@@ -1,0 +1,5 @@
+name: fotos2imagen
+exec:
+  script: full.py
+requirements:
+  - requirements.txt
