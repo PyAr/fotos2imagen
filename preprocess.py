@@ -1,21 +1,23 @@
 import argparse
 import pathlib
+from tqdm import tqdm
 
 from PIL import Image, UnidentifiedImageError
 
 
 def main(source_dir, sizes_dirs):
     """Main entry point."""
-    for path in source_dir.iterdir():
-        print("Processing", path)
+    l = list(source_dir.iterdir())
+    for path in tqdm(l):
+        # print("Processing", path)
         try:
             src_image = Image.open(path)
         except UnidentifiedImageError:
-            print("    WARNING archivo no identificado")
+            print(f"    WARNING archivo no identificado: {path}")
             continue
-        print("    size:", src_image.size)
+        # print("    size:", src_image.size)
 
-        print("    squaring")
+        # print("    squaring")
         width, height = src_image.size
         square_images = []
         if width == height:
@@ -53,7 +55,7 @@ def main(source_dir, sizes_dirs):
                 square_images.append((idx, new_image))
 
         for edge_size, dest_dir in sizes_dirs:
-            print("    saving", edge_size)
+            # print("    saving", edge_size)
             for idx, image in square_images:
                 resized = image.resize((edge_size, edge_size), Image.LANCZOS)
                 new_path = f"{path.stem}_{idx}{path.suffix}"
