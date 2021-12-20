@@ -1,12 +1,10 @@
 import os
 import logging
-import sys
 import pickle
 
 import numpy as np
 
-from PIL import Image, ImageStat, ImageChops, ImageOps
-from tqdm import tqdm
+from PIL import Image, ImageChops, ImageOps
 
 from pathlib import Path
 from finder import ImageFinder
@@ -16,6 +14,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
+# increment the max image size
+Image.MAX_IMAGE_PIXELS = 1_000_000_000
 
 DEFAULT_FISA_TEMPLATE = "fisa-{chunk_size}.pkl"
 DEFAULT_RANDOMIZATION_FACTOR = 1
@@ -55,7 +55,7 @@ class Mosaiker:
         self.tile_size = tile_size
         self.out_fname = out_fname
         self.images_root_dir = images_root_dir
-        
+
         self.fisa = self._load_a_fisa(model_file=model_file)
 
         mosaic_width = tile_size * width_in_chunks
@@ -69,7 +69,7 @@ class Mosaiker:
             # Use the provided file, blindly
             with open(model_file, "rb") as f:
                 return pickle.load(f)
-        
+
         target_fisa = DEFAULT_FISA_TEMPLATE.format(chunk_size=self.chunk_size)
         fisa_file_path = os.path.join(self.images_root_dir, target_fisa)
         if os.path.exists(fisa_file_path):
@@ -81,8 +81,8 @@ class Mosaiker:
         # Let's just initialize a new Fisa and save it for reuse
         print(f"🔎  No Fisa in sight for chunks size {self.chunk_size}! Let's summon one...")
         fisa = ImageFinder(
-            images_path=Path(self.images_for_comparison), 
-            window_height=self.chunk_size, 
+            images_path=Path(self.images_for_comparison),
+            window_height=self.chunk_size,
             window_width=self.chunk_size,
         )
         fisa.prepare()
@@ -115,8 +115,8 @@ class Mosaiker:
         except ValueError as e:
             logger.exception(e)
             print("Falló. A llorar al campito 😭")
-        
-        
+
+
     def _extract_chunk(self, chunk_col, chunk_row):
         """Extract a chunk from the original image."""
 
@@ -137,7 +137,7 @@ class Mosaiker:
 
     def _build_tile(self, chunk, target_image, blend_factor):
         # import ipdb; ipdb.set_trace()
-        
+
         # chunk_per_channel_mean = np.mean(chunk, axis=tuple(range(chunk.ndim-1)))
 
         # tile_per_channel_mean = ImageStat.Stat(target_image).mean
